@@ -1,1 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Personal Health Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Roboto, sans-serif;
+        }
+        body {
+            background-color: #f0f8f5;
+            color: #2c3e50;
+            padding: 2rem;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        header h1 {
+            color: #27ae60;
+            margin-bottom: 0.5rem;
+        }
+        header p {
+            color: #666;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 1.5rem;
+        }
+        .card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 14px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+        }
+        .card h3 {
+            margin-bottom: 1rem;
+            color: #27ae60;
+        }
+        canvas {
+            width: 100% !important;
+            height: 260px !important;
+        }
+        .bmi-calc {
+            margin-top: 1rem;
+        }
+        .bmi-calc input {
+            padding: 8px;
+            width: 120px;
+            margin: 0 6px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+        }
+        .bmi-calc button {
+            padding: 8px 14px;
+            background: #27ae60;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        .result {
+            margin-top:12px;
+            font-weight: 500;
+        }
+        footer {
+            text-align: center;
+            margin-top: 3rem;
+            color: #888;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Personal Health Dashboard</h1>
+            <p>Track your steps, sleep, heart rate and BMI</p>
+        </header>
+
+        <div class="grid">
+            <!-- Step Chart -->
+            <div class="card">
+                <h3>Weekly Steps</h3>
+                <canvas id="stepChart"></canvas>
+            </div>
+            <!-- Sleep Chart -->
+            <div class="card">
+                <h3>Sleep Duration (Hours)</h3>
+                <canvas id="sleepChart"></canvas>
+            </div>
+            <!-- Heart Rate -->
+            <div class="card">
+                <h3>Resting Heart Rate (BPM)</h3>
+                <canvas id="hrChart"></canvas>
+            </div>
+            <!-- BMI Calculator -->
+            <div class="card">
+                <h3>BMI Calculator</h3>
+                <div class="bmi-calc">
+                    <label>Height (m):</label>
+                    <input type="number" id="height" step="0.01" placeholder="e.g. 1.70">
+                    <label>Weight (kg):</label>
+                    <input type="number" id="weight" step="0.1" placeholder="e.g. 65">
+                    <br><br>
+                    <button onclick="calcBMI()">Calculate BMI</button>
+                    <div class="result" id="bmiResult"></div>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            Health Visualization Dashboard | Powered by Chart.js
+        </footer>
+    </div>
+
+    <script>
+        // Weekly labels
+        const weekLabels = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+
+        // Steps Chart
+        const stepCtx = document.getElementById('stepChart').getContext('2d');
+        new Chart(stepCtx, {
+            type: 'bar',
+            data: {
+                labels: weekLabels,
+                datasets: [{
+                    label: 'Steps',
+                    data: [7200, 9100, 5600, 10200, 8500, 12000, 6800],
+                    backgroundColor: '#2ecc71'
+                }]
+            },
+            options: { responsive: true, maintainAspectRatio: false }
+        });
+
+        // Sleep Chart
+        const sleepCtx = document.getElementById('sleepChart').getContext('2d');
+        new Chart(sleepCtx, {
+            type: 'line',
+            data: {
+                labels: weekLabels,
+                datasets: [{
+                    label: 'Sleep Hours',
+                    data: [7.2, 6.5, 8.0, 5.8, 7.5, 8.4, 7.0],
+                    borderColor: '#3498db',
+                    fill: true,
+                    backgroundColor: 'rgba(52, 152, 219,0.15)'
+                }]
+            },
+            options: { responsive: true, maintainAspectRatio: false }
+        });
+
+        // Heart Rate Chart
+        const hrCtx = document.getElementById('hrChart').getContext('2d');
+        new Chart(hrCtx, {
+            type: 'line',
+            data: {
+                labels: weekLabels,
+                datasets: [{
+                    label: 'Heart Rate BPM',
+                    data: [68, 72, 65, 74, 70, 66, 69],
+                    borderColor: '#e74c3c',
+                    fill: true,
+                    backgroundColor: 'rgba(231,76,60,0.12)'
+                }]
+            },
+            options: { responsive: true, maintainAspectRatio: false }
+        });
+
+        // BMI Function
+        function calcBMI(){
+            const h = parseFloat(document.getElementById('height').value);
+            const w = parseFloat(document.getElementById('weight').value);
+            const resDom = document.getElementById('bmiResult');
+            if(!h || !w || h <=0 || w <=0){
+                resDom.textContent = "Please enter valid height and weight.";
+                resDom.style.color = "red";
+                return;
+            }
+            const bmi = (w / (h*h)).toFixed(2);
+            let tip = "";
+            if(bmi < 18.5) tip = "Underweight";
+            else if(bmi < 24) tip = "Normal";
+            else if(bmi < 28) tip = "Overweight";
+            else tip = "Obese";
+            resDom.textContent = `Your BMI: ${bmi} → ${tip}`;
+            resDom.style.color = "#27ae60";
+        }
+    </script>
+</body>
+</html>
 
